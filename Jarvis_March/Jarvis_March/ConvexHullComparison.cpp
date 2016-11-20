@@ -29,13 +29,12 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 	if (vectorsData.size() == 0) return 0;
 
 	//get distance between furthest points to determin the 
-	Visualization visualization(sf::VideoMode(512, 512), vectorsData);
+	Visualization visualization(sf::VideoMode(512, 512), vectorsData, 10);
 	JarvisMarch jarvisMarch;
 	if(m_useGraphics)
 	{
 		//change window on each On.. event
-		jarvisMarch.OnChangePointOfCalculation = [&](const sf::Vector2f& point) { visualization.RenderNewPointOfCalculation(point); };
-		visualization.RenderVectors();
+		jarvisMarch.OnChangePointOfCalculation = [&](const std::vector<sf::Vector2f>& hullpoints) { visualization.RenderHull(hullpoints); };
 	}
 	jarvisMarch.CalculateConvexHull(vectorsData);
 
