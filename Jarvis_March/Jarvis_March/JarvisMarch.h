@@ -11,8 +11,8 @@ public:
 
 	std::vector<sf::Vector2f> CalculateConvexHull(const std::vector<sf::Vector2f>& pDataArray);
 
-
-	std::function<void(const std::vector<sf::Vector2f>&)> OnChangePointOfCalculation = nullptr;
-	//and so on
+	std::function<void(const sf::Vector2f&)> OnPointCheckEvent = nullptr;
+	std::function<void(const sf::Vector2f&)> OnHullCandidateFoundEvent = nullptr;
+	std::function<void(const std::vector<sf::Vector2f>&)> OnHullPointFoundEvent = nullptr;
 };
 

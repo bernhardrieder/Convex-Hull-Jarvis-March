@@ -34,7 +34,9 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 	if(m_useGraphics)
 	{
 		//change window on each On.. event
-		jarvisMarch.OnChangePointOfCalculation = [&](const std::vector<sf::Vector2f>& hullpoints) { visualization.RenderHull(hullpoints); };
+		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { visualization.RenderHull(hullpoints); };
+		jarvisMarch.OnPointCheckEvent = [&](const sf::Vector2f& checkPoint) { visualization.RenderCheckLine(checkPoint); };
+		jarvisMarch.OnHullCandidateFoundEvent = [&](const sf::Vector2f& hullCandidatePoint) { visualization.RenderHullCandidateLine(hullCandidatePoint); };
 	}
 	jarvisMarch.CalculateConvexHull(vectorsData);
 
