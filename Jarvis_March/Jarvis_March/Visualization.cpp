@@ -9,8 +9,13 @@ Visualization::Visualization(sf::VideoMode mode, const std::vector<sf::Vector2f>
 	m_renderWindow = new sf::RenderWindow(mode, "Convex Hull Comparison");
 	for (auto& a : m_vectors)
 	{
-		sf::CircleShape* shape = new sf::CircleShape(100.f);
-		shape->setFillColor(sf::Color::Green);
+		sf::CircleShape* shape = new sf::CircleShape(10.f);
+		shape->setOrigin(shape->getRadius(), shape->getRadius());
+		shape->setPosition(a);
+
+		shape->setFillColor(sf::Color::Transparent);
+		shape->setOutlineColor(sf::Color::Black);
+		shape->setOutlineThickness(2.f);
 		// set position etc ....
 		m_drawableVectors.push_back(shape);
 	}
@@ -35,6 +40,8 @@ void Visualization::RenderVectors() const
 void Visualization::RenderNewPointOfCalculation(const sf::Vector2f& point)
 {
 	sf::CircleShape shape(10.f);
+	shape.setOrigin(shape.getRadius(), shape.getRadius());
+	shape.setPosition(point);
 	shape.setFillColor(sf::Color::Blue);
 	std::vector<sf::Drawable*> draws(m_drawableVectors.begin(), m_drawableVectors.end());
 	draws.push_back(&shape);
@@ -47,7 +54,7 @@ void Visualization::draw(const std::vector<sf::Drawable*>& drawables) const
 	{
 		handleEvents();
 
-		m_renderWindow->clear();
+		m_renderWindow->clear(sf::Color::White);
 		for(int i = 0; i < drawables.size(); ++i)
 			m_renderWindow->draw(*drawables[i]);
 		m_renderWindow->display();

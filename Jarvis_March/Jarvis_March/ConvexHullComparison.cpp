@@ -13,6 +13,7 @@ inline float randomNumber(float low, float high)
 
 ConvexHullComparison::ConvexHullComparison(): m_useGraphics(false), m_isModeSet(false)
 {
+	srand(time(NULL));
 }
 
 
@@ -24,11 +25,11 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 {
 	if (!parseCommandLine(argc, argv)) return 0;
 
-	std::vector<sf::Vector2f> vectorsData = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, -1000000, 1000000);
+	std::vector<sf::Vector2f> vectorsData = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, 50, 462);
 	if (vectorsData.size() == 0) return 0;
 
 	//get distance between furthest points to determin the 
-	Visualization visualization(sf::VideoMode(200, 200), vectorsData);
+	Visualization visualization(sf::VideoMode(512, 512), vectorsData);
 	JarvisMarch jarvisMarch;
 	if(m_useGraphics)
 	{
@@ -85,6 +86,7 @@ void ConvexHullComparison::showUsage(const std::string& fileName)
 		<< "\t\t\t\t --mode visual"
 		<< "\t--load NAME\t\tOPTIONAL: Load an input: --load NAME (where NAME is a filename with the extension '.gol')\n"
 		<< std::endl;
+	getchar();
 }
 
 std::vector<sf::Vector2f> ConvexHullComparison::loadInputData(const std::string& filePath)
