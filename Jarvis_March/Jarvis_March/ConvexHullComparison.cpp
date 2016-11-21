@@ -42,11 +42,13 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 	auto startTime = std::chrono::high_resolution_clock::now();
 	auto convexHull = jarvisMarch.GetConvexHull(points);
+	auto endTime = std::chrono::high_resolution_clock::now() - startTime;
 
 	if(!m_useGraphics)
 	{
-		printDuration(std::cout, std::chrono::high_resolution_clock::now() - startTime);
-		std::cout << '\n';
+		std::cout << "Jarvis March took: ";
+		printDuration(std::cout, endTime);
+		std::cout << " (min:sec:millisec:nanosec)" << std::endl;
 		printConvexHull(convexHull);
 	} 
 	else
@@ -59,6 +61,7 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 int ConvexHullComparison::ExecuteTestingProtocol() const
 {
+	//just used for testing protocol
 	JarvisMarch jarvisMarch;
 	std::ofstream outputFile("testing_protocol.csv");
 	if (outputFile.is_open())
