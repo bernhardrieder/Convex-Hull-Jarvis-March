@@ -5,41 +5,82 @@
 #include <fstream>
 #include <sstream>
 #include "Visualization.h"
+#include <iomanip>
+#include <fstream>
 
 inline float randomNumber(float low, float high)
 {
 	return low + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (high - low)));
 }
 
-ConvexHullComparison::ConvexHullComparison(): m_useGraphics(false), m_isModeSet(false)
+ConvexHullComparison::ConvexHullComparison(): m_visualization(nullptr), m_useGraphics(false), m_isModeSet(false)
 {
 	srand(time(NULL));
 }
 
-
 ConvexHullComparison::~ConvexHullComparison()
 {
+	if (m_visualization != nullptr)
+		delete m_visualization;
 }
 
 int ConvexHullComparison::Execute(int argc, char** argv)
 {
 	if (!parseCommandLine(argc, argv)) return 0;
 
-	std::vector<sf::Vector2f> vectorsData = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, 50, 462);
-	if (vectorsData.size() == 0) return 0;
-
-	//get distance between furthest points to determin the 
-	Visualization visualization(sf::VideoMode(512, 512), vectorsData, 10);
 	JarvisMarch jarvisMarch;
+
+	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(100, 50, 974);
+
 	if(m_useGraphics)
 	{
-		//change window on each On.. event
-		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { visualization.RenderHull(hullpoints); };
-		jarvisMarch.OnPointCheckEvent = [&](const sf::Vector2f& checkPoint) { visualization.RenderCheckLine(checkPoint); };
-		jarvisMarch.OnHullCandidateFoundEvent = [&](const sf::Vector2f& hullCandidatePoint) { visualization.RenderHullCandidateLine(hullCandidatePoint); };
+		m_visualization = new Visualization(sf::VideoMode(1024, 1024), points, 10);
+		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderHull(hullpoints); };
+		jarvisMarch.OnPointCheckEvent = [&](const sf::Vector2f& checkPoint) { m_visualization->RenderCheckLine(checkPoint); };
+		jarvisMarch.OnHullCandidateFoundEvent = [&](const sf::Vector2f& hullCandidatePoint) { m_visualization->RenderHullCandidateLine(hullCandidatePoint); };
 	}
-	jarvisMarch.CalculateConvexHull(vectorsData);
 
+	auto startTime = std::chrono::high_resolution_clock::now();
+	auto convexHull = jarvisMarch.GetConvexHull(points);
+
+	if(!m_useGraphics)
+	{
+		printDuration(std::cout, std::chrono::high_resolution_clock::now() - startTime);
+		std::cout << '\n';
+		printConvexHull(convexHull);
+	} 
+	else
+	{
+		//TODO: render window and check close events, so its open until user wants to exit
+	}
+	getchar();
+	return 0;
+}
+
+int ConvexHullComparison::ExecuteTestingProtocol() const
+{
+	JarvisMarch jarvisMarch;
+	std::ofstream outputFile("testing_protocol.csv");
+	if (outputFile.is_open())
+	{
+		int maxPoints = 1000000;
+		std::vector<sf::Vector2f> randomPoints = createRandomData(maxPoints, -1000000000, 1000000000);
+
+		outputFile << "datasize" << ';' << "JarvisMarch" << ';' << '\n';
+
+		for (int testNumbers = 10; testNumbers <= maxPoints; testNumbers *= 10)
+		{
+			std::vector<sf::Vector2f> points(randomPoints.begin(), randomPoints.begin() + testNumbers);
+			outputFile << testNumbers << ';';	
+			auto startTime = std::chrono::high_resolution_clock::now();
+			jarvisMarch.GetConvexHull(points);
+			printDuration(outputFile, std::chrono::high_resolution_clock::now() - startTime);
+			outputFile << '\n';
+		}
+	}
+
+	std::cout << "Finished all tests!\n";
+	getchar();
 	return 0;
 }
 
@@ -138,4 +179,24 @@ std::vector<sf::Vector2f> ConvexHullComparison::createRandomData(int amount, flo
 		randomData[i].y = randomNumber(randomNumberLow, randomNumberHigh);
 	}
 	return std::move(randomData);
+}
+
+void ConvexHullComparison::printConvexHull(const std::vector<sf::Vector2f>& convexHull)
+{
+	std::cout << "Convex Hull Points:" << std::endl;
+	for (auto hullPoint : convexHull)
+	{
+		std::cout << "[" << std::to_string(hullPoint.x) << "," << std::to_string(hullPoint.y) << "]" << std::endl;
+	}
+}
+
+void ConvexHullComparison::printDuration(std::ostream& output, std::chrono::duration<double> diff) const
+{
+	auto minutes = std::chrono::duration_cast<std::chrono::minutes>(diff);
+	auto seconds = std::chrono::duration_cast<std::chrono::seconds>(diff);
+	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+	auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
+
+
+	output << std::setfill('0') << std::setw(2) << minutes.count() << ":" << std::setfill('0') << std::setw(2) << seconds.count() << "." << std::setfill('0') << std::setw(3) << milliseconds.count() << ":" << nanoseconds.count() << ";";
 }

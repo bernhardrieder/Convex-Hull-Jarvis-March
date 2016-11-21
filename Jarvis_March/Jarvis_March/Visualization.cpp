@@ -121,7 +121,7 @@ void Visualization::draw() const
 			m_renderWindow->draw(*m_candidateLine);
 
 		m_renderWindow->display();
-		std::this_thread::sleep_for(std::chrono::milliseconds(300));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 
