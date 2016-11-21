@@ -15,7 +15,7 @@ inline float randomNumber(float low, float high)
 
 ConvexHullComparison::ConvexHullComparison(): m_visualization(nullptr), m_useGraphics(false), m_isModeSet(false)
 {
-	srand(time(NULL));
+	srand(static_cast<unsigned int>(time(NULL)));
 }
 
 ConvexHullComparison::~ConvexHullComparison()
@@ -30,11 +30,26 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 	JarvisMarch jarvisMarch;
 
-	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, 50, 974);
+	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(100, -10000, 10000);
 
 	if(m_useGraphics)
 	{
-		m_visualization = new Visualization(sf::VideoMode(1024, 1024), points, 10);
+		sf::Vector2f min(0, 0);
+		sf::Vector2f max(0, 0);
+
+		for (const auto& p : points)
+		{
+			if (p.x < min.x)
+				min.x = p.x;
+			if (p.x > max.x)
+				max.x = p.x;
+			if (p.y < min.y)
+				min.y = p.y;
+			if (p.y > max.y)
+				max.y = p.y;
+		}
+
+		m_visualization = new Visualization(sf::Vector2f(1024, 1024), min, max, points, 4, 0);
 		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderPartialHull(hullpoints); };
 		jarvisMarch.OnHullCompleteEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderCompleteHull(hullpoints); };
 		jarvisMarch.OnPointCheckEvent = [&](const sf::Vector2f& checkPoint) { m_visualization->RenderCheckLine(checkPoint); };
@@ -54,10 +69,7 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 	} 
 	else
 	{
-		while (!m_visualization->ShouldClose())
-		{
-
-		}
+		while (!m_visualization->ShouldClose());
 	}
 	return 0;
 }

@@ -3,20 +3,38 @@
 #include <SFML/Window/Event.hpp>
 #include <memory>
 #include <thread>
-#include <chrono>
 
 #define GREEN sf::Color(0,200,0,255);
 
-Visualization::Visualization(sf::VideoMode mode, const std::vector<sf::Vector2f>& vectorData, const float pointSize) : m_vectors(vectorData), m_pointSize(pointSize)
+Visualization::Visualization(const sf::Vector2f & preferedWindowSize, const sf::Vector2f & minCoord, 
+	const sf::Vector2f & maxCoord, const std::vector<sf::Vector2f>& vectorData, const float & pointSize, 
+	const long long& millisecondPause) : m_vectors(vectorData), m_pointSize(pointSize), m_millisecondPause(millisecondPause)
 {
-	m_renderWindow = new sf::RenderWindow(mode, "Convex Hull Comparison");
+	//get the adjusted windowsize
+	sf::Vector2i windowSize = calculateWindowSize(preferedWindowSize, minCoord, maxCoord, 0.2f);
+	m_renderWindow = new sf::RenderWindow(sf::VideoMode(windowSize.x,windowSize.y), "Convex Hull Comparison");
+
+	//add lines for the axis
+	sf::VertexArray* horizontalAxis = new sf::VertexArray(sf::LinesStrip, 2);
+	(*horizontalAxis)[0].position = sf::Vector2f(0, m_middle.y);
+	(*horizontalAxis)[0].color = sf::Color(0, 0, 0, 100);
+	(*horizontalAxis)[1].position = sf::Vector2f(static_cast<float>(windowSize.x), m_middle.y);
+	(*horizontalAxis)[1].color = sf::Color(0, 0, 0, 100);
+
+	sf::VertexArray* verticalAxis = new sf::VertexArray(*horizontalAxis);
+	(*verticalAxis)[0].position = sf::Vector2f(m_middle.x, 0);
+	(*verticalAxis)[1].position = sf::Vector2f(m_middle.x, static_cast<float>(windowSize.y));
+
+	m_drawableVectors.push_back(horizontalAxis);
+	m_drawableVectors.push_back(verticalAxis);
+
 	for (auto& pos : m_vectors)
 	{
 		//create a new circle for every point
 		sf::CircleShape* shape = new sf::CircleShape(m_pointSize);
 		//configure circle
 		shape->setOrigin(shape->getRadius(), shape->getRadius());
-		shape->setPosition(pos);
+		shape->setPosition(pos*m_zoomFactor + m_middle);
 
 		//setup circle visuals
 		shape->setFillColor(sf::Color::Transparent);
@@ -60,7 +78,7 @@ void Visualization::RenderPartialHull(const std::vector<sf::Vector2f>& hullPoint
 	//save all positions
 	for (unsigned int i = 0; i < hullPoints.size(); ++i)
 	{
-		(*m_hull)[i].position = hullPoints[i];
+		(*m_hull)[i].position = hullPoints[i] * m_zoomFactor + m_middle;
 		(*m_hull)[i].color = sf::Color::Red;
 	}
 
@@ -73,7 +91,7 @@ void Visualization::RenderPartialHull(const std::vector<sf::Vector2f>& hullPoint
 	}
 
 	//set the current anchor to the position of the last point
-	m_currentAnchor->setPosition(*(hullPoints.end() - 1));
+	m_currentAnchor->setPosition(*(hullPoints.end() - 1)*m_zoomFactor + m_middle);
 
 	draw();
 }
@@ -86,14 +104,15 @@ void Visualization::RenderCompleteHull(const std::vector<sf::Vector2f>& hullPoin
 	//save all positions
 	for (unsigned int i = 0; i < hullPoints.size(); ++i)
 	{
-		(*m_hull)[i].position = hullPoints[i];
+		(*m_hull)[i].position = hullPoints[i] * m_zoomFactor + m_middle;
 		(*m_hull)[i].color = sf::Color::Red;
 	}
 
 	//set last point to be connected to the first one
-	(*m_hull)[hullPoints.size()].position = hullPoints[0];
+	(*m_hull)[hullPoints.size()].position = hullPoints[0] * m_zoomFactor + m_middle;
 	(*m_hull)[hullPoints.size()].color = sf::Color::Red;
 
+	//delete shapes and explicitly set them to nullpointer
 	delete m_currentAnchor;
 	m_currentAnchor = nullptr;
 	delete m_checkline;
@@ -108,7 +127,7 @@ void Visualization::RenderCompleteHull(const std::vector<sf::Vector2f>& hullPoin
 void Visualization::RenderCheckLine(const sf::Vector2f & checkPoint)
 {
 	(*m_checkline)[0].position = m_currentAnchor->getPosition();
-	(*m_checkline)[1].position = checkPoint;
+	(*m_checkline)[1].position = checkPoint * m_zoomFactor + m_middle;
 
 	draw();
 }
@@ -117,10 +136,10 @@ void Visualization::RenderCheckLine(const sf::Vector2f & checkPoint)
 void Visualization::RenderHullCandidateLine(const sf::Vector2f & candidatePoint)
 {
 	(*m_checkline)[0].position = m_currentAnchor->getPosition();
-	(*m_checkline)[1].position = candidatePoint;
+	(*m_checkline)[1].position = candidatePoint * m_zoomFactor + m_middle;
 
 	(*m_candidateLine)[0].position = m_currentAnchor->getPosition();
-	(*m_candidateLine)[1].position = candidatePoint;
+	(*m_candidateLine)[1].position = candidatePoint * m_zoomFactor + m_middle;
 
 	draw();
 }
@@ -131,7 +150,32 @@ bool Visualization::ShouldClose()
 	return !m_renderWindow->isOpen();
 }
 
+// Calculates a proper windowsize to fit all the points into the prefered window size. 
+// The window size will not exceed the prefered window size.
+// The border percent determins the distance to the outer edge of the window
+sf::Vector2i Visualization::calculateWindowSize(const sf::Vector2f & preferedWindowSize, 
+	const sf::Vector2f & minCoord, const sf::Vector2f & maxCoord, const float& borderPercent)
+{
+	//create a vector2 that defines the whole area
+	sf::Vector2f extends(maxCoord.x - minCoord.x, maxCoord.y - minCoord.y);
+	//add the border
+	extends *= 1 + borderPercent;
 
+	//calculate the aspectratio
+	float aspectRatio = extends.x / extends.y;
+	if (aspectRatio > 1)
+		//take the wide side to calculate the necessary zoom
+		m_zoomFactor = preferedWindowSize.x / extends.x;
+	else
+		//take the tall side...
+		m_zoomFactor = preferedWindowSize.y / extends.y;
+
+	//create a vector that defines the origin
+	m_middle = -minCoord * (1+borderPercent);
+	m_middle *=m_zoomFactor;
+
+	return sf::Vector2i(static_cast<int>(extends.x*m_zoomFactor), static_cast<int>(extends.y*m_zoomFactor));
+}
 
 // Renders all the points and lines
 void Visualization::draw() const
@@ -157,7 +201,9 @@ void Visualization::draw() const
 			m_renderWindow->draw(*m_candidateLine);
 
 		m_renderWindow->display();
-		std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+		if(m_millisecondPause > 0)
+			std::this_thread::sleep_for(std::chrono::milliseconds(m_millisecondPause));
 	}
 }
 
