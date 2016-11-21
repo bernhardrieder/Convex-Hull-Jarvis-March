@@ -30,12 +30,13 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 	JarvisMarch jarvisMarch;
 
-	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(100, 50, 974);
+	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, 50, 974);
 
 	if(m_useGraphics)
 	{
 		m_visualization = new Visualization(sf::VideoMode(1024, 1024), points, 10);
-		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderHull(hullpoints); };
+		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderPartialHull(hullpoints); };
+		jarvisMarch.OnHullCompleteEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderCompleteHull(hullpoints); };
 		jarvisMarch.OnPointCheckEvent = [&](const sf::Vector2f& checkPoint) { m_visualization->RenderCheckLine(checkPoint); };
 		jarvisMarch.OnHullCandidateFoundEvent = [&](const sf::Vector2f& hullCandidatePoint) { m_visualization->RenderHullCandidateLine(hullCandidatePoint); };
 	}
@@ -53,9 +54,11 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 	} 
 	else
 	{
-		//TODO: render window and check close events, so its open until user wants to exit
+		while (!m_visualization->ShouldClose())
+		{
+
+		}
 	}
-	getchar();
 	return 0;
 }
 

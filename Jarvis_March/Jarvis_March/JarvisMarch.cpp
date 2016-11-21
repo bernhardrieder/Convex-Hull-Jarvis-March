@@ -55,6 +55,9 @@ std::vector<sf::Vector2f> JarvisMarch::GetConvexHull(const std::vector<sf::Vecto
 	//do until we wrapped around to the first hull point
 	while (endPoint != convexHull[0]);
 
+	if (OnHullCompleteEvent != nullptr)
+		OnHullCompleteEvent(convexHull);
+
 	return convexHull;
 }
 

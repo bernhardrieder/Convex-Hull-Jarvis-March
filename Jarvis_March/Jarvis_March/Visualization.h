@@ -11,9 +11,12 @@ public:
 	Visualization(sf::VideoMode mode, const std::vector<sf::Vector2f>& vectorData, float pointSize);
 	~Visualization();
 
-	void RenderHull(const std::vector<sf::Vector2f>& hullPoints);
+	void RenderPartialHull(const std::vector<sf::Vector2f>& hullPoints);
+	void RenderCompleteHull(const std::vector<sf::Vector2f>& hullPoints);
 	void RenderCheckLine(const sf::Vector2f& checkPoint);
 	void RenderHullCandidateLine(const sf::Vector2f& candidatePoint);
+
+	bool ShouldClose();
 
 private:
 	void draw() const;

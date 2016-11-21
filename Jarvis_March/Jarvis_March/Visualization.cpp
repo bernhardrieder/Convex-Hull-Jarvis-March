@@ -5,6 +5,8 @@
 #include <thread>
 #include <chrono>
 
+#define GREEN sf::Color(0,200,0,255);
+
 Visualization::Visualization(sf::VideoMode mode, const std::vector<sf::Vector2f>& vectorData, const float pointSize) : m_vectors(vectorData), m_pointSize(pointSize)
 {
 	m_renderWindow = new sf::RenderWindow(mode, "Convex Hull Comparison");
@@ -27,8 +29,8 @@ Visualization::Visualization(sf::VideoMode mode, const std::vector<sf::Vector2f>
 
 	//create and configure lines
 	m_checkline = new sf::VertexArray(sf::LinesStrip, 2);
-	(*m_checkline)[0].color = sf::Color::Green;
-	(*m_checkline)[1].color = sf::Color::Green;
+	(*m_checkline)[0].color = GREEN;
+	(*m_checkline)[1].color = GREEN;
 
 	m_candidateLine = new sf::VertexArray(sf::LinesStrip, 2);
 	(*m_candidateLine)[0].color = sf::Color::Black;
@@ -42,16 +44,16 @@ Visualization::~Visualization()
 	{
 		delete m_drawableVectors[i];
 	}
-	if(m_renderWindow != nullptr)
-		delete m_renderWindow;
+	delete m_renderWindow;
 	delete m_candidateLine;
 	delete m_checkline;
 	delete m_currentAnchor;
+	delete m_hull;
 }
 
 // Renders the hull with a red line from hullpoints[0], hullpoints[1] .. hullpoints[n]
 // and renders the last point of the hull with a blue circle
-void Visualization::RenderHull(const std::vector<sf::Vector2f>& hullPoints)
+void Visualization::RenderPartialHull(const std::vector<sf::Vector2f>& hullPoints)
 {
 	//override the existing hull
 	m_hull = new sf::VertexArray(sf::LinesStrip, hullPoints.size());
@@ -72,6 +74,32 @@ void Visualization::RenderHull(const std::vector<sf::Vector2f>& hullPoints)
 
 	//set the current anchor to the position of the last point
 	m_currentAnchor->setPosition(*(hullPoints.end() - 1));
+
+	draw();
+}
+
+void Visualization::RenderCompleteHull(const std::vector<sf::Vector2f>& hullPoints)
+{
+	//override the current hull
+	m_hull = new sf::VertexArray(sf::LinesStrip, hullPoints.size()+1);
+
+	//save all positions
+	for (unsigned int i = 0; i < hullPoints.size(); ++i)
+	{
+		(*m_hull)[i].position = hullPoints[i];
+		(*m_hull)[i].color = sf::Color::Red;
+	}
+
+	//set last point to be connected to the first one
+	(*m_hull)[hullPoints.size()].position = hullPoints[0];
+	(*m_hull)[hullPoints.size()].color = sf::Color::Red;
+
+	delete m_currentAnchor;
+	m_currentAnchor = nullptr;
+	delete m_checkline;
+	m_checkline = nullptr;
+	delete m_candidateLine;
+	m_candidateLine = nullptr;
 
 	draw();
 }
@@ -97,6 +125,14 @@ void Visualization::RenderHullCandidateLine(const sf::Vector2f & candidatePoint)
 	draw();
 }
 
+bool Visualization::ShouldClose()
+{
+	handleEvents();
+	return !m_renderWindow->isOpen();
+}
+
+
+
 // Renders all the points and lines
 void Visualization::draw() const
 {
@@ -121,7 +157,7 @@ void Visualization::draw() const
 			m_renderWindow->draw(*m_candidateLine);
 
 		m_renderWindow->display();
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
 }
 

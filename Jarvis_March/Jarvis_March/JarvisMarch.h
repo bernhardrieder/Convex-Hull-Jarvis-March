@@ -14,6 +14,7 @@ public:
 	std::function<void(const sf::Vector2f&)> OnPointCheckEvent = nullptr;
 	std::function<void(const sf::Vector2f&)> OnHullCandidateFoundEvent = nullptr;
 	std::function<void(const std::vector<sf::Vector2f>&)> OnHullPointFoundEvent = nullptr;
+	std::function<void(const std::vector<sf::Vector2f>&)> OnHullCompleteEvent = nullptr;
 
 private:
 	static sf::Vector2f findLeftmost(const std::vector<sf::Vector2f>& DataArray);
