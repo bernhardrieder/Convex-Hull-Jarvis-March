@@ -30,11 +30,11 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 	JarvisMarch jarvisMarch;
 
-	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(100, -10000, 10000);
+	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(100, -100, 100);
 
 	if(m_useGraphics)
 	{
-		sf::Vector2f min(0, 0);
+		sf::Vector2f min(FLT_MAX, FLT_MAX);
 		sf::Vector2f max(0, 0);
 
 		for (const auto& p : points)
@@ -49,7 +49,7 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 				max.y = p.y;
 		}
 
-		m_visualization = new Visualization(sf::Vector2f(1024, 1024), min, max, points, 4, 0);
+		m_visualization = new Visualization(sf::Vector2f(1024, 1024), min, max, points, 4, 30);
 		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderPartialHull(hullpoints); };
 		jarvisMarch.OnHullCompleteEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderCompleteHull(hullpoints); };
 		jarvisMarch.OnPointCheckEvent = [&](const sf::Vector2f& checkPoint) { m_visualization->RenderCheckLine(checkPoint); };

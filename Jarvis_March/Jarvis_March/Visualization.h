@@ -28,7 +28,7 @@ private:
 	float m_pointSize;
 	long long m_millisecondPause = 20;
 	float m_zoomFactor = 1.f;
-	sf::Vector2f m_middle;
+	sf::Vector2f m_origin;
 
 	sf::RenderWindow* m_renderWindow = nullptr;
 	std::vector<sf::Vector2f> m_vectors;
