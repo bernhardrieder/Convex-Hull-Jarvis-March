@@ -93,6 +93,12 @@ void Visualization::RenderPartialHull(const std::vector<sf::Vector2f>& hullPoint
 	//set the current anchor to the position of the last point
 	m_currentAnchor->setPosition(*(hullPoints.end() - 1)*m_zoomFactor + m_origin);
 
+	//reset the check- and candidate line
+	(*m_checkline)[0].position = m_currentAnchor->getPosition();
+	(*m_checkline)[1].position = m_currentAnchor->getPosition();
+	(*m_candidateLine)[0].position = m_currentAnchor->getPosition();
+	(*m_candidateLine)[1].position = m_currentAnchor->getPosition();
+
 	draw();
 }
 

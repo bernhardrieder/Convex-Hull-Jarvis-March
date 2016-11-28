@@ -30,8 +30,9 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 	JarvisMarch jarvisMarch;
 
-	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, -100, 100);
+	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(20, -1, 1);
 
+	std::random_shuffle(points.begin(), points.end());
 	if(m_useGraphics)
 	{
 		sf::Vector2f min(FLT_MAX, FLT_MAX);
@@ -49,7 +50,7 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 				max.y = p.y;
 		}
 
-		m_visualization = new Visualization(sf::Vector2f(1024, 1024), min, max, points, 4, 0);
+		m_visualization = new Visualization(sf::Vector2f(1024, 1024), min, max, points, 4, 300);
 		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderPartialHull(hullpoints); };
 		jarvisMarch.OnHullCompleteEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderCompleteHull(hullpoints); };
 		jarvisMarch.OnPointCheckEvent = [&](const sf::Vector2f& checkPoint) { m_visualization->RenderCheckLine(checkPoint); };
@@ -245,10 +246,9 @@ void ConvexHullComparison::printConvexHull(const std::vector<sf::Vector2f>& conv
 void ConvexHullComparison::printDuration(std::ostream& output, std::chrono::duration<double> diff) const
 {
 	auto minutes = std::chrono::duration_cast<std::chrono::minutes>(diff);
-	auto seconds = std::chrono::duration_cast<std::chrono::seconds>(diff);
-	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
-	auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
-
+	auto seconds = std::chrono::duration_cast<std::chrono::seconds>(diff - std::chrono::duration_cast<std::chrono::seconds>(minutes));
+	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(diff - std::chrono::duration_cast<std::chrono::milliseconds>(seconds));
+	auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(diff - std::chrono::duration_cast<std::chrono::nanoseconds>(milliseconds));
 
 	output << std::setfill('0') << std::setw(2) << minutes.count() << ":" << std::setfill('0') << std::setw(2) << seconds.count() << "." << std::setfill('0') << std::setw(3) << milliseconds.count() << ":" << nanoseconds.count() << ";";
 }

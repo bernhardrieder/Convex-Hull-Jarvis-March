@@ -19,5 +19,8 @@ public:
 private:
 	static sf::Vector2f findLeftmost(const std::vector<sf::Vector2f>& DataArray);
 	static bool isOnTheLeftSideOfLine(const sf::Vector2f& from, const sf::Vector2f& point, const sf::Vector2f& to);
+	static float crossProduct(const sf::Vector2f& from, const sf::Vector2f& point, const sf::Vector2f& to);
+	static float pointLenghtSquared(const sf::Vector2f& point);
+
 };
 
