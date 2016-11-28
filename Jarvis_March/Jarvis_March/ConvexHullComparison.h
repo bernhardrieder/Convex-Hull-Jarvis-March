@@ -11,7 +11,8 @@ public:
 	ConvexHullComparison();
 	~ConvexHullComparison();
 	int Execute(int argc, char** argv);
-	int ExecuteTestingProtocol() const;
+	int ExecuteTestingProtocol_RandomPoints() const;
+	int ExecuteTestingProtocol_ExtremaFiles() const;
 
 private:
 	bool parseCommandLine(int argc, char** argv);

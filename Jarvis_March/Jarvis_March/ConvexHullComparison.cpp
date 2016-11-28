@@ -30,7 +30,7 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 	JarvisMarch jarvisMarch;
 
-	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, -100, 100);
+	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(100, -100, 100);
 
 	if(m_useGraphics)
 	{
@@ -49,7 +49,7 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 				max.y = p.y;
 		}
 
-		m_visualization = new Visualization(sf::Vector2f(1024, 1024), min, max, points, 4, 30);
+		m_visualization = new Visualization(sf::Vector2f(1024, 1024), min, max, points, 4, 0);
 		jarvisMarch.OnHullPointFoundEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderPartialHull(hullpoints); };
 		jarvisMarch.OnHullCompleteEvent = [&](const std::vector<sf::Vector2f>& hullpoints) { m_visualization->RenderCompleteHull(hullpoints); };
 		jarvisMarch.OnPointCheckEvent = [&](const sf::Vector2f& checkPoint) { m_visualization->RenderCheckLine(checkPoint); };
@@ -74,14 +74,14 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 	return 0;
 }
 
-int ConvexHullComparison::ExecuteTestingProtocol() const
+int ConvexHullComparison::ExecuteTestingProtocol_RandomPoints() const
 {
 	//just used for testing protocol
 	JarvisMarch jarvisMarch;
 	std::ofstream outputFile("testing_protocol.csv");
 	if (outputFile.is_open())
 	{
-		int maxPoints = 1000000;
+		int maxPoints = 10000000;
 		std::vector<sf::Vector2f> randomPoints = createRandomData(maxPoints, -1000000000, 1000000000);
 
 		outputFile << "datasize" << ';' << "JarvisMarch" << ';' << '\n';
@@ -90,6 +90,33 @@ int ConvexHullComparison::ExecuteTestingProtocol() const
 		{
 			std::vector<sf::Vector2f> points(randomPoints.begin(), randomPoints.begin() + testNumbers);
 			outputFile << testNumbers << ';';	
+			auto startTime = std::chrono::high_resolution_clock::now();
+			jarvisMarch.GetConvexHull(points);
+			printDuration(outputFile, std::chrono::high_resolution_clock::now() - startTime);
+			outputFile << '\n';
+		}
+	}
+
+	std::cout << "Finished all tests!\n";
+	getchar();
+	return 0;
+}
+
+int ConvexHullComparison::ExecuteTestingProtocol_ExtremaFiles() const
+{
+	//just used for testing protocol
+	std::string files[7]{ "10", "100", "1000", "10000", "100000", "1000000", "10000000" };
+	std::ofstream outputFile("testing_protocol.csv");
+	JarvisMarch jarvisMarch;
+	if (outputFile.is_open())
+	{
+		outputFile << "datasize" << ';' << "JarvisMarch" << ';' << '\n';
+
+		for (int testFiles = 0; testFiles < 7; ++testFiles)
+		{
+			std::vector<sf::Vector2f> points = loadInputData(files[testFiles]);
+			std::random_shuffle(points.begin(), points.end());
+			outputFile << files[testFiles] << ';';
 			auto startTime = std::chrono::high_resolution_clock::now();
 			jarvisMarch.GetConvexHull(points);
 			printDuration(outputFile, std::chrono::high_resolution_clock::now() - startTime);
