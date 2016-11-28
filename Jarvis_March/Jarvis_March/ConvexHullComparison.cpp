@@ -15,7 +15,7 @@ inline float randomNumber(float low, float high)
 
 ConvexHullComparison::ConvexHullComparison(): m_visualization(nullptr), m_useGraphics(false), m_isModeSet(false)
 {
-	srand(static_cast<unsigned int>(time(NULL)));
+	srand(static_cast<unsigned int>(time(nullptr)));
 }
 
 ConvexHullComparison::~ConvexHullComparison()
@@ -30,7 +30,7 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 	JarvisMarch jarvisMarch;
 
-	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(100, -100, 100);
+	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, -100, 100);
 
 	if(m_useGraphics)
 	{
@@ -142,11 +142,10 @@ void ConvexHullComparison::showUsage(const std::string& fileName)
 {
 	std::cerr << "Usage: " << fileName << " <option(s)> parameters\n"
 		<< "Options:\n"
-		<< "\t--mode\t\t\tMode of computation: --mode performance (outputs convex hull + time measurements on console)"
-		<< "\t\t\t\t --mode visual"
+		<< "\t--mode performance\toutputs convex hull + time measurements on console\n"
+		<< "\t--mode visual\n"
 		<< "\t--load NAME\t\tOPTIONAL: Load an input: --load NAME (where NAME is a filename with the extension '.gol')\n"
 		<< std::endl;
-	getchar();
 }
 
 std::vector<sf::Vector2f> ConvexHullComparison::loadInputData(const std::string& filePath)

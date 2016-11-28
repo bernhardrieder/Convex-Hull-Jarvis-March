@@ -19,38 +19,43 @@ std::vector<sf::Vector2f> JarvisMarch::GetConvexHull(const std::vector<sf::Vecto
 		exit(EXIT_FAILURE);
 	}
 
+	auto tmpPoints = points;
 	//init result
 	std::vector<sf::Vector2f> convexHull;
 
 	//get first hull point and startpoint - use leftmost point
-	sf::Vector2f hullPoint = findLeftmost(points);
+	sf::Vector2f hullPoint = findLeftmost(tmpPoints);
 	sf::Vector2f endPoint;
+	int convexHullPointIndex;
 	do
 	{
+		convexHullPointIndex = 0;
 		//add current found hull point
 		convexHull.push_back(hullPoint);
 		if (OnHullPointFoundEvent != nullptr)
 			OnHullPointFoundEvent(convexHull);
 
 		//initial endpoint for a candidate edge on the hull
-		endPoint = points[0];
-		for(int i = 1; i < points.size(); ++i)
+		endPoint = tmpPoints[0];
+		for(int i = 1; i < tmpPoints.size(); ++i)
 		{
 			//iterate and check every point
 			if (OnPointCheckEvent != nullptr)
-				OnPointCheckEvent(points[i]);
+				OnPointCheckEvent(tmpPoints[i]);
 
-			if (endPoint == hullPoint || isOnTheLeftSideOfLine(hullPoint, points[i], endPoint))
+			if (endPoint == hullPoint || isOnTheLeftSideOfLine(hullPoint, tmpPoints[i], endPoint))
 			{
 				//if current point is on the left side of the vector from current hullpoint to endpoint then use this as next hull point candidate
-				endPoint = points[i];
+				endPoint = tmpPoints[i];
+				convexHullPointIndex = i;
 				if (OnHullCandidateFoundEvent != nullptr)
 					OnHullCandidateFoundEvent(endPoint);
 			}
 		}
 		//assign new leftmost point as new hull point
 		hullPoint = endPoint;
-
+		//erase found convex hull point from list
+		tmpPoints.erase(tmpPoints.begin() + convexHullPointIndex);
 	} 
 	//do until we wrapped around to the first hull point
 	while (endPoint != convexHull[0]);
