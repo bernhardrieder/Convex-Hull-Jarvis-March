@@ -183,6 +183,11 @@ std::vector<sf::Vector2f> ConvexHullComparison::loadInputData(const std::string&
 		}
 		inputFile.close();
 	}
+	else
+	{
+		std::cerr << "ERROR: File not found!" << std::endl;
+		exit(1);
+	}
 	return std::move(data);
 }
 
