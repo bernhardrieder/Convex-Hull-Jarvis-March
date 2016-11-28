@@ -11,15 +11,6 @@ JarvisMarch::~JarvisMarch()
 {
 }
 
-bool xComparator(sf::Vector2f& i, sf::Vector2f& j )
-{
-	return i.x < j.x && i.y < j.y;
-}
-
-bool yComparator(sf::Vector2f& i, sf::Vector2f& j)
-{
-	return i.y < j.y;
-}
 std::vector<sf::Vector2f> JarvisMarch::GetConvexHull(const std::vector<sf::Vector2f>& points) const
 {
 	if (points.size() < 3)
@@ -29,8 +20,6 @@ std::vector<sf::Vector2f> JarvisMarch::GetConvexHull(const std::vector<sf::Vecto
 	}
 
 	auto tmpPoints = points;
-	//std::sort(tmpPoints.begin(), tmpPoints.end(), xComparator);
-	//std::sort(tmpPoints.begin(), tmpPoints.end(), yComparator);
 	//init result
 	std::vector<sf::Vector2f> convexHull;
 
