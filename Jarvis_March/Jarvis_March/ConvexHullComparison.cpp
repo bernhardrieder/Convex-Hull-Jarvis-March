@@ -30,7 +30,7 @@ int ConvexHullComparison::Execute(int argc, char** argv)
 
 	JarvisMarch jarvisMarch;
 
-	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(100, -100, 100);
+	std::vector<sf::Vector2f> points = m_inputPath.size() > 0 ? loadInputData(m_inputPath) : createRandomData(10, -100, 100);
 
 	if(m_useGraphics)
 	{
@@ -94,11 +94,12 @@ int ConvexHullComparison::ExecuteTestingProtocol_RandomPoints() const
 			jarvisMarch.GetConvexHull(points);
 			printDuration(outputFile, std::chrono::high_resolution_clock::now() - startTime);
 			outputFile << '\n';
+
+			std::cout << "Finished with " << std::to_string(testNumbers) << " random points" << std::endl;
 		}
 	}
 
 	std::cout << "Finished all tests!\n";
-	getchar();
 	return 0;
 }
 
@@ -112,15 +113,17 @@ int ConvexHullComparison::ExecuteTestingProtocol_ExtremaFiles() const
 	{
 		outputFile << "datasize" << ';' << "JarvisMarch" << ';' << '\n';
 
-		for (int testFiles = 0; testFiles < 7; ++testFiles)
+		for (int testFileIndex = 0; testFileIndex < 7; ++testFileIndex)
 		{
-			std::vector<sf::Vector2f> points = loadInputData(files[testFiles]);
+			std::vector<sf::Vector2f> points = loadInputData(files[testFileIndex]);
 			std::random_shuffle(points.begin(), points.end());
-			outputFile << files[testFiles] << ';';
+			outputFile << files[testFileIndex] << ';';
 			auto startTime = std::chrono::high_resolution_clock::now();
 			jarvisMarch.GetConvexHull(points);
 			printDuration(outputFile, std::chrono::high_resolution_clock::now() - startTime);
 			outputFile << '\n';
+
+			std::cout << "Finished file with " << files[testFileIndex] << " numbers" << std::endl;
 		}
 	}
 
